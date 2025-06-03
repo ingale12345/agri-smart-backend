@@ -1,0 +1,226 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  admin
+  staff
+  customer
+  delivery
+}
+
+enum OrderStatus {
+  pending
+  completed
+  cancelled
+}
+
+enum CropType {
+  Kharif
+  Rabi
+  Zaid
+}
+
+enum DeliveryStatus {
+  pending
+  assigned
+  delivered
+}
+
+model User {
+  id        String    @id @default(uuid())
+  email     String    @unique
+  password  String
+  name      String
+  uniqueId  String
+  phone     String?
+  role      Role
+  shopUser  ShopUser?
+  customer  Customer?
+  createdAt DateTime  @default(now())
+}
+
+model ShopUser {
+  id         String  @id @default(uuid())
+  userId     String  @unique
+  shopId     String
+  branchId   String
+  role       String
+  assignedBy String?
+
+  user   User   @relation(fields: [userId], references: [id])
+  shop   Shop   @relation(fields: [shopId], references: [id])
+  branch Branch @relation(fields: [branchId], references: [id])
+
+  @@index([shopId])
+  @@index([branchId])
+}
+
+model Shop {
+  id        String     @id @default(uuid())
+  name      String
+  ownerName String
+  contact   String?
+  email     String?
+  address   String?
+  imageUrl  String?
+  branches  Branch[]
+  users     ShopUser[]
+  orders    Order[]
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+}
+
+model Branch {
+  id       String  @id @default(uuid())
+  shopId   String
+  name     String
+  location String?
+  contact  String?
+
+  shop       Shop            @relation(fields: [shopId], references: [id])
+  geoTag     GeoTag?
+  inventory  InventoryItem[]
+  orders     Order[]
+  deliveries Delivery[]
+  shopUsers  ShopUser[] // <-- added this back-reference
+}
+
+model GeoTag {
+  id       String @id @default(uuid())
+  branchId String @unique
+  lat      Float
+  lng      Float
+  radius   Float
+
+  branch Branch @relation(fields: [branchId], references: [id])
+}
+
+model Customer {
+  id     String         @id @default(uuid())
+  userId String         @unique
+  user   User           @relation(fields: [userId], references: [id])
+  crops  CustomerCrop[]
+  orders Order[]
+}
+
+model CustomerCrop {
+  id         String @id @default(uuid())
+  customerId String
+  cropId     String
+  season     String
+  year       Int
+  area       Float
+
+  customer Customer @relation(fields: [customerId], references: [id])
+  crop     Crop     @relation(fields: [cropId], references: [id])
+}
+
+model Crop {
+  id            String               @id @default(uuid())
+  name          String
+  type          CropType
+  applications  ProductApplication[]
+  customerCrops CustomerCrop[]
+}
+
+model ProductApplication {
+  id                String @id @default(uuid())
+  productId         String
+  cropId            String
+  useStage          String
+  recommendedDosage String
+
+  product InventoryItem @relation(fields: [productId], references: [id])
+  crop    Crop          @relation(fields: [cropId], references: [id])
+}
+
+model InventoryItem {
+  id       String  @id @default(uuid())
+  branchId String
+  name     String
+  brand    String?
+  price    Float
+  stock    Float
+  unit     String
+  gst      Float
+
+  branch       Branch               @relation(fields: [branchId], references: [id])
+  applications ProductApplication[]
+  orderItems   OrderItem[]
+  invoiceItems OrderInvoiceItem[]
+}
+
+model Order {
+  id             String      @id @default(uuid())
+  customerId     String
+  shopId         String
+  branchId       String
+  customerCropId String?
+  totalAmount    Float
+  status         OrderStatus
+
+  items    OrderItem[]
+  invoice  Invoice?
+  delivery Delivery?
+  customer Customer    @relation(fields: [customerId], references: [id])
+  shop     Shop        @relation(fields: [shopId], references: [id])
+  branch   Branch      @relation(fields: [branchId], references: [id])
+}
+
+model OrderItem {
+  id       String @id @default(uuid())
+  orderId  String
+  itemId   String
+  quantity Float
+
+  order Order         @relation(fields: [orderId], references: [id])
+  item  InventoryItem @relation(fields: [itemId], references: [id])
+}
+
+model Invoice {
+  id            String @id @default(uuid())
+  invoiceNumber String
+  orderId       String @unique
+  discount      Float
+  netAmount     Float
+  paidAmount    Float
+  dueAmount     Float
+
+  items OrderInvoiceItem[]
+  order Order              @relation(fields: [orderId], references: [id])
+}
+
+model OrderInvoiceItem {
+  id        String @id @default(uuid())
+  invoiceId String
+  itemId    String
+  quantity  Float
+  price     Float
+
+  invoice Invoice       @relation(fields: [invoiceId], references: [id])
+  item    InventoryItem @relation(fields: [itemId], references: [id])
+}
+
+model Delivery {
+  id              String         @id @default(uuid())
+  orderId         String         @unique
+  branchId        String
+  deliveryAgentId String
+  status          DeliveryStatus
+  estimatedTime   String
+  deliveredAt     DateTime?
+  locationLat     Float?
+  locationLng     Float?
+
+  order  Order  @relation(fields: [orderId], references: [id])
+  branch Branch @relation(fields: [branchId], references: [id])
+}
