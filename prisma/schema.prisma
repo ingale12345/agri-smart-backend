@@ -46,7 +46,7 @@ model User {
   shopUser  ShopUser?
   customer  Customer?
   createdAt DateTime  @default(now())
-   image     Json?   
+  image     Json?
 }
 
 model ShopUser {
@@ -70,9 +70,9 @@ model Shop {
   name      String
   ownerName String
   contact   String?
-  email     String?
+  email     String     @unique
   address   String?
- image      Json?   
+  image     Json?
   branches  Branch[]
   users     ShopUser[]
   orders    Order[]
@@ -81,12 +81,12 @@ model Shop {
 }
 
 model Branch {
-  id       String  @id @default(uuid())
-  shopId   String
-  name     String
-  location String?
-  contact  String?
-  image    Json? 
+  id         String          @id @default(uuid())
+  shopId     String
+  name       String
+  location   String?
+  contact    String?
+  image      Json?
   shop       Shop            @relation(fields: [shopId], references: [id])
   geoTag     GeoTag?
   inventory  InventoryItem[]
@@ -145,15 +145,15 @@ model ProductApplication {
 }
 
 model InventoryItem {
-  id       String  @id @default(uuid())
-  branchId String
-  name     String
-  brand    String?
-  price    Float
-  stock    Float
-  unit     String
-  gst      Float
-  image    Json? 
+  id           String               @id @default(uuid())
+  branchId     String
+  name         String
+  brand        String?
+  price        Float
+  stock        Float
+  unit         String
+  gst          Float
+  image        Json?
   branch       Branch               @relation(fields: [branchId], references: [id])
   applications ProductApplication[]
   orderItems   OrderItem[]
@@ -221,7 +221,7 @@ model Delivery {
   deliveredAt     DateTime?
   locationLat     Float?
   locationLng     Float?
-  image           Json? 
-  order  Order  @relation(fields: [orderId], references: [id])
-  branch Branch @relation(fields: [branchId], references: [id])
+  image           Json?
+  order           Order          @relation(fields: [orderId], references: [id])
+  branch          Branch         @relation(fields: [branchId], references: [id])
 }
