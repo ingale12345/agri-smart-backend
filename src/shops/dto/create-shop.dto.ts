@@ -1,3 +1,4 @@
+import { File } from 'multer';
 export class CreateShopDto {
   name: string;
   ownerName: string;
