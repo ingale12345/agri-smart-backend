@@ -46,6 +46,7 @@ model User {
   shopUser  ShopUser?
   customer  Customer?
   createdAt DateTime  @default(now())
+   image     Json?   
 }
 
 model ShopUser {
@@ -71,7 +72,7 @@ model Shop {
   contact   String?
   email     String?
   address   String?
-  imageUrl  String?
+ image      Json?   
   branches  Branch[]
   users     ShopUser[]
   orders    Order[]
@@ -85,7 +86,7 @@ model Branch {
   name     String
   location String?
   contact  String?
-
+  image    Json? 
   shop       Shop            @relation(fields: [shopId], references: [id])
   geoTag     GeoTag?
   inventory  InventoryItem[]
@@ -152,7 +153,7 @@ model InventoryItem {
   stock    Float
   unit     String
   gst      Float
-
+  image    Json? 
   branch       Branch               @relation(fields: [branchId], references: [id])
   applications ProductApplication[]
   orderItems   OrderItem[]
@@ -220,7 +221,7 @@ model Delivery {
   deliveredAt     DateTime?
   locationLat     Float?
   locationLng     Float?
-
+  image           Json? 
   order  Order  @relation(fields: [orderId], references: [id])
   branch Branch @relation(fields: [branchId], references: [id])
 }
