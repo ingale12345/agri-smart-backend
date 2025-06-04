@@ -36,13 +36,10 @@ export class ShopsService {
   }
 
   async update(id: string, dto: UpdateShopDto, file?: File) {
-    const savedFilePath = file ? file.path : null;
-
     return this.prisma.shop.update({
       where: { id },
       data: {
         ...dto,
-        // same here, save image path if you need it
       },
     });
   }
